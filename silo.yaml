@@ -13,7 +13,8 @@ bulk:
 
 # mqtt server information to connect
 mqtt:
-    host: MQTT BROKER IP ADDRESS
+    #mqtt server host
+    host: localhost
     port: 1883
     username: MQTT USERNAME
     clientId: MQTT CLIENT ID
@@ -26,8 +27,9 @@ database:
     engine: mysql
     host: 127.0.0.1
     port: 3306
-    username: DATABASE USERNAME
-    password: DATABASE PASSWORD
-    name: DATABASE NAME
+    username: root
+    password: 123456
+    #DB name and add jdbc connection params at the same time,or will throw ex
+    name: emq_silo?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false
 
 

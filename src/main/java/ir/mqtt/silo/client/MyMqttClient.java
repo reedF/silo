@@ -57,7 +57,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 		pingManager.setClientId(conf.getUsername());
 		
 		mqttConnectOptions = new MqttConnectOptions();
-//		mqttConnectOptions.setAutomaticReconnect(true);
+		mqttConnectOptions.setAutomaticReconnect(true);
 		mqttConnectOptions.setCleanSession(false);
 		mqttConnectOptions.setConnectionTimeout(conf.getConnectionTimeout());
 		mqttConnectOptions.setKeepAliveInterval(conf.getKeepAliveInterval());
@@ -169,8 +169,11 @@ public class MyMqttClient implements MqttCallbackExtended  {
 	@Override
 	public void connectComplete(boolean reconnect, String serverURI) {
 		
-		if (reconnect) 
-			;//Log.d("#+#", "===============REconnected================  " + conf.getUri());
+		if (reconnect) {
+			subscribeToAllTopics(); 
+			System.out.println("===============REconnected================" + serverURI);
+			//;//Log.d("#+#", "===============REconnected================  " + conf.getUri());
+		}
 		else
 			onConnected();
 	}
