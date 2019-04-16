@@ -48,5 +48,6 @@ public class Constants {
 	
 	public static final String SILO_COLLECTION_NAME = "silo";
 	
+	public static final String SUB_TOPICS = "topics";
 
 }

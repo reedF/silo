@@ -13,6 +13,8 @@ package ir.mqtt.silo.conf;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
@@ -41,6 +43,7 @@ public class SysConfig {
 		mqttConf.setClientId(mqttClientId);
 		mqttConf.setHost(mqttHost);
 		mqttConf.setPort(mqttPort);
+		mqttConf.setTopics(mqttTopics);
 	}
 	
 	
@@ -73,6 +76,13 @@ public class SysConfig {
 				mqttClientId = mqtt.get(Constants.CLIENT_ID).toString();
 				mqttPassword = mqtt.get(Constants.PASSWORD).toString();
 				mqttPort = (int) mqtt.get(Constants.PORT);
+				mqttTopics = (List<String>)mqtt.get(Constants.SUB_TOPICS);
+				if (mqttTopics == null){
+					mqttTopics = new ArrayList<>();
+				}
+				if (mqttTopics.isEmpty()) {
+					mqttTopics.add("#");
+				}
 				if(mqttPort <= 0 || mqttPort >= 65535)
 					return false;
 				
@@ -141,6 +151,7 @@ public class SysConfig {
 	public String mqttClientId;
 	public String mqttHost = "127.0.0.1";
 	public int mqttPort = 1883;
+	public List<String> mqttTopics = new ArrayList<>();
 	
 	
 	

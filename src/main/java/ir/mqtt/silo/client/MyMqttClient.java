@@ -11,6 +11,8 @@
 package ir.mqtt.silo.client;
 
 
+import java.util.List;
+
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
@@ -58,7 +60,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 		
 		mqttConnectOptions = new MqttConnectOptions();
 		mqttConnectOptions.setAutomaticReconnect(true);
-		mqttConnectOptions.setCleanSession(false);
+		mqttConnectOptions.setCleanSession(true);
 		mqttConnectOptions.setConnectionTimeout(conf.getConnectionTimeout());
 		mqttConnectOptions.setKeepAliveInterval(conf.getKeepAliveInterval());
 		mqttConnectOptions.setMaxInflight(conf.getMaxInflight());
@@ -110,7 +112,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 //        	connecting.set(false);
         } catch(Exception e) {
         	e.printStackTrace();
-        	reconnectionHandle();
+        	reconnectionHandle(e);
         } 
 	}
 	//-----------------------------------------------------------------------------
@@ -138,7 +140,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 	//-----------------------------------------------------------------------------
 	@Override
 	public void connectionLost(Throwable cause) {
-		reconnectionHandle();
+		reconnectionHandle(cause);
 	}
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
@@ -161,7 +163,8 @@ public class MyMqttClient implements MqttCallbackExtended  {
 	//-----------------------------------------------------------------------------
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
-		
+		if (mqttListener != null)
+			mqttListener.onMessageArrived(topic, message);
 	}
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
@@ -180,16 +183,22 @@ public class MyMqttClient implements MqttCallbackExtended  {
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
-	public void subscribeToTopics(String[] subscriptionTopics) {
-		int size = subscriptionTopics.length;
-		for(int i=0; i<size; i++)
-			subscribeToTopic(subscriptionTopics[i]);
+	public void subscribeToTopics(List<String> subscriptionTopics) {
+//		int size = subscriptionTopics.length;
+//		for(int i=0; i<size; i++)
+//			subscribeToTopic(subscriptionTopics[i]);
+		for(String t:subscriptionTopics) {
+			if (t != null && !t.isEmpty()) {
+				subscribeToTopic(t);
+			}
+		}
 	}
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
-	public boolean subscribeToAllTopics() {
-		return subscribeToTopic("#");
+	public void subscribeToAllTopics() {
+		subscribeToTopics(conf.getTopics());
+		//return subscribeToTopic("#");
 	}
 	
 	public boolean subscribeToTopic(String subscriptionTopic) {
@@ -241,7 +250,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
-	private void reconnectionHandle(){
+	private void reconnectionHandle(Throwable cause){
 //		if(handler == null)
 //			handler = new Handler();
 //		
@@ -252,6 +261,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 //		
 //		handler.removeCallbacks(asyncConnectingServer);
 //		handler.postDelayed(asyncConnectingServer, delayList[delayIndex]);
+		System.out.println("连接断开，可以做重连,错误原因：" + cause);
 	}
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------

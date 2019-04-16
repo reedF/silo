@@ -10,6 +10,8 @@
 
 package ir.mqtt.silo.client;
 
+import java.util.List;
+
 public class MqttConf {
 
 	public static final int MQTT_QOS_0 = 0;
@@ -40,7 +42,16 @@ public class MqttConf {
 	private int maxInflight = DEFAULT_MAX_INFLIGHT;
 	private int keepAliveInterval = DEAFULT_KEEP_ALIVE_INTERVAL;
 	private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+	private List<String> topics;
 	
+	public List<String> getTopics() {
+		return topics;
+	}
+
+	public void setTopics(List<String> topics) {
+		this.topics = topics;
+	}
+
 	public String getUri() {
 		return getProtocol() + "://" + getHost() + ":" + getPort();
 	}
