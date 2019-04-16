@@ -10,12 +10,12 @@
 
 package ir.mqtt.silo.conf;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -23,20 +23,28 @@ import ir.mqtt.silo.client.MqttConf;
 import ir.mqtt.silo.database.DatabaseEngine;
 
 public class SysConfig {
-	
-	private final String confFilePath = "./silo.yaml";
-	
+
+	public static String default_confFilePath = "silo.yaml";
+
+	public URL confFilePath;
+
 	private static SysConfig instance;
 
-	public static SysConfig getInstance() throws Exception {
-		if(instance == null)
-			instance = new SysConfig();
+	public static SysConfig getInstance(URL yaml) throws Exception {
+		if (instance == null) {
+			instance = new SysConfig(yaml);
+			instance.init();
+		}
 		return instance;
 	}
 
+	private SysConfig(URL yaml) {
+		confFilePath = yaml;
+	}
 
-	private SysConfig() throws Exception {
-		if(!parse()) throw new Exception("bad conf file");
+	private void init() throws Exception {
+		if (!parse())
+			throw new Exception("bad conf file");
 		mqttConf = new MqttConf();
 		mqttConf.setUsername(mqttUsername);
 		mqttConf.setPassword(mqttPassword);
@@ -45,117 +53,121 @@ public class SysConfig {
 		mqttConf.setPort(mqttPort);
 		mqttConf.setTopics(mqttTopics);
 	}
-	
-	
+
 	@SuppressWarnings("unchecked")
 	public boolean parse() {
-		
+
 		Yaml yaml = new Yaml();
-		
-		try (InputStream input = new FileInputStream(new File(confFilePath))) {
-			
+
+		// try (InputStream input = new FileInputStream(new File(confFilePath)))
+		// {
+		try (InputStream input = confFilePath.openStream()) {
 			Map<String, Object> parser = (Map<String, Object>) yaml.load(input);
-			
+
 			threads = (int) parser.get(Constants.THREADS);
-			if(threads <= 0)
+			if (threads <= 0)
 				threads = Runtime.getRuntime().availableProcessors();
-			
+
 			Map<String, Object> bulk = (Map<String, Object>) parser.get(Constants.BULK);
-			if(bulk != null) {
+			if (bulk != null) {
 				bulkIntervalSeconds = (int) bulk.get(Constants.INTERVAL);
 				bulkCount = (int) bulk.get(Constants.COUNT);
 			} else {
 				bulkIntervalSeconds = 5;
 				bulkCount = 100;
 			}
-			
+
 			Map<String, Object> mqtt = (Map<String, Object>) parser.get(Constants.MQTT);
-			if(mqtt != null) {
-				mqttHost = mqtt.get(Constants.HOST).toString();;
+			if (mqtt != null) {
+				mqttHost = mqtt.get(Constants.HOST).toString();
+				;
 				mqttUsername = mqtt.get(Constants.USERNAME).toString();
 				mqttClientId = mqtt.get(Constants.CLIENT_ID).toString();
 				mqttPassword = mqtt.get(Constants.PASSWORD).toString();
 				mqttPort = (int) mqtt.get(Constants.PORT);
-				mqttTopics = (List<String>)mqtt.get(Constants.SUB_TOPICS);
-				if (mqttTopics == null){
+				mqttTopics = (List<String>) mqtt.get(Constants.SUB_TOPICS);
+				mqttIsGenRandom = (Boolean) mqtt.get(Constants.GEN_RANDOM);
+				if (mqttIsGenRandom == null) {
+					mqttIsGenRandom = false;
+				}
+				if (mqttTopics == null) {
 					mqttTopics = new ArrayList<>();
 				}
 				if (mqttTopics.isEmpty()) {
 					mqttTopics.add("#");
 				}
-				if(mqttPort <= 0 || mqttPort >= 65535)
+				if (mqttClientId == null || mqttClientId.length() < 0 || mqttUsername == null
+						|| mqttUsername.length() < 0) {
 					return false;
-				
+				}
+				if (mqttIsGenRandom) {
+					mqttClientId += "-"  + UUID.randomUUID();
+				}
+				if (mqttPort <= 0 || mqttPort >= 65535)
+					return false;
+
 			} else {
 				return false;
 			}
-			
+
 			Map<String, Object> database = (Map<String, Object>) parser.get(Constants.DATABASE);
-			if(database != null) {
+			if (database != null) {
 				dbHost = database.get(Constants.HOST).toString();
-				if(database.get(Constants.USERNAME) != null)
+				if (database.get(Constants.USERNAME) != null)
 					dbUsername = database.get(Constants.USERNAME).toString();
-				
-				if(database.get(Constants.PASSWORD) != null)
+
+				if (database.get(Constants.PASSWORD) != null)
 					dbPassword = database.get(Constants.PASSWORD).toString();
-				
+
 				dbName = database.get(Constants.NAME).toString();
-				
+
 				dbPort = (int) database.get(Constants.PORT);
-				if(dbPort <= 0 || dbPort >= 65535)
+				if (dbPort <= 0 || dbPort >= 65535)
 					return false;
-				
-				
+
 				String engine = database.get(Constants.ENGINE).toString();
-				if(engine.equalsIgnoreCase(Constants.MYSQL))
+				if (engine.equalsIgnoreCase(Constants.MYSQL))
 					dbEngine = DatabaseEngine.MYSQL;
-				else if(engine.equalsIgnoreCase(Constants.POSTGRES))
+				else if (engine.equalsIgnoreCase(Constants.POSTGRES))
 					dbEngine = DatabaseEngine.POSTGRES;
-				else if(engine.equalsIgnoreCase(Constants.MONGODB))
+				else if (engine.equalsIgnoreCase(Constants.MONGODB))
 					dbEngine = DatabaseEngine.MONGODB;
 				else
 					return false;
-				
+
 			} else {
 				return false;
 			}
-			
+
 			return true;
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 	}
 
-
-	
 	public int threads = Runtime.getRuntime().availableProcessors();
-	
+
 	public int bulkIntervalSeconds = 5;
 	public int bulkCount = 100;
-	
-	
+
 	public String dbHost = "127.0.0.1";
 	public int dbPort = 3306;
 	public String dbUsername;
 	public String dbPassword;
 	public String dbName;
-	
-	
+
 	public MqttConf mqttConf;
-	
+
 	public DatabaseEngine dbEngine = DatabaseEngine.UNKNOWN;
 	public String mqttUsername;
 	public String mqttPassword;
 	public String mqttClientId;
+	//是否在clientId中加入随机后缀，以区分为不同client
+	public Boolean mqttIsGenRandom = false;
 	public String mqttHost = "127.0.0.1";
 	public int mqttPort = 1883;
 	public List<String> mqttTopics = new ArrayList<>();
-	
-	
-	
-	
-	
 
 }

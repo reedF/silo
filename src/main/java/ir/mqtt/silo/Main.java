@@ -10,6 +10,9 @@
 
 package ir.mqtt.silo;
 
+import java.io.File;
+import java.net.URL;
+
 import ir.mqtt.silo.client.MyMqttClient;
 import ir.mqtt.silo.conf.SysConfig;
 import ir.mqtt.silo.database.DatabaseWorkerPool;
@@ -21,15 +24,17 @@ public class Main {
 
 		SysConfig sysConfig = null;
 		try {
-			sysConfig = SysConfig.getInstance();
+			String f = System.getProperty("user.dir") + "\\" + SysConfig.default_confFilePath;
+			URL conf = new File(f).toURI().toURL();
+			sysConfig = SysConfig.getInstance(conf);
 		} catch (Exception e) {
 			System.err.println("ERROR...bad conf file.");
+			e.printStackTrace();
 			System.exit(0);
 		}
-		
-		
+
 		DatabaseWorkerPool.getInstance(sysConfig);
-		
+
 		MyMqttClient client = MyMqttClient.getInstance(sysConfig.mqttConf);
 		SimpleDispatcher dispatcher = new SimpleDispatcher(sysConfig);
 		client.setMqttListener(dispatcher);

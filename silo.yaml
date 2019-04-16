@@ -15,9 +15,10 @@ bulk:
 mqtt:
     #mqtt server host
     host: localhost
-    port: 21883
+    port: 1883
     username: MQTT USERNAME
     clientId: MQTT CLIENT ID
+    isGenRandom: false
     password: MQTT PASSOWRD
     ping_interval: 30
     topics: ["test/#","$queue/test2/#"]
