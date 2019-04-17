@@ -41,7 +41,7 @@ public class Worker implements IScheduler, Runnable {
 	
 	public Worker(int thresholdCount, int thresholdTime, DatabaseOperation database) {
 		this.thresholdCount = thresholdCount;
-		this.thresholdTime = thresholdTime;
+		this.thresholdTime = thresholdTime * 1000;
 		
 		queue = new ConcurrentLinkedQueue<>();
 		taskQueue = new LinkedBlockingQueue<>();
