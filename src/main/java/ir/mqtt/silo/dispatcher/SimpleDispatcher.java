@@ -69,4 +69,8 @@ public class SimpleDispatcher implements IMqttListener {
 		workerPool.get(roundRobinIndex.getAndIncrement() % nThreads).enqueue(new Message(topic, message));
 	}
 
+	public List<Worker> getWorkerPool() {
+		return workerPool;
+	}
+
 }

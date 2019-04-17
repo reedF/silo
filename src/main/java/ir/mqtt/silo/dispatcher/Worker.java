@@ -35,6 +35,10 @@ public class Worker implements IScheduler, Runnable {
 	
 	private DatabaseOperation database;
 	
+	public AtomicInteger getQueueSize() {
+		return queueSize;
+	}
+
 	public void stop() {
 		taskQueue.add(null);
 	}
