@@ -232,7 +232,7 @@ public class MyMqttClient implements MqttCallbackExtended  {
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------
-	public boolean publishMessage(String publishMessage, String publishTopic){
+	public boolean publishMessage(String publishTopic,String publishMessage){
 
 		if(!mqttClient.isConnected())
 			return false;
