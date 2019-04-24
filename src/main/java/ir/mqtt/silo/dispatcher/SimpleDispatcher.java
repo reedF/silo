@@ -23,7 +23,9 @@ import ir.mqtt.silo.client.IMqttListener;
 import ir.mqtt.silo.conf.SysConfig;
 import ir.mqtt.silo.database.DatabaseWorkerPool;
 import ir.mqtt.silo.scheduler.Scheduler;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SimpleDispatcher implements IMqttListener {
 	
 	private Scheduler scheduler;
@@ -56,12 +58,14 @@ public class SimpleDispatcher implements IMqttListener {
 
 	@Override
 	public void onConnected() {
-		System.err.println("connected to mqtt-broker: " + conf.mqttHost + ":" + conf.mqttPort);
+		//System.err.println("connected to mqtt-broker: " + conf.mqttHost + ":" + conf.mqttPort);
+		log.info("====connected to mqtt-broker:{}====",conf.mqttHost + ":" + conf.mqttPort);
 	}
 
 	@Override
 	public void onDisconnected() {
-		System.err.println("disconnected from mqtt-broker: " + conf.mqttHost + ":" + conf.mqttPort);
+		//System.err.println("disconnected from mqtt-broker: " + conf.mqttHost + ":" + conf.mqttPort);
+		log.info("====disconnected from mqtt-broker:{}====",conf.mqttHost + ":" + conf.mqttPort);
 	}
 
 	@Override

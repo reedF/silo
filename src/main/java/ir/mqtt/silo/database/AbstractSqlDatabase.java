@@ -15,12 +15,17 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import ir.mqtt.silo.conf.Constants;
 import ir.mqtt.silo.dispatcher.Message;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public abstract class AbstractSqlDatabase extends DatabaseHelper implements DatabaseOperation {
 
 	protected Connection connection = null;
+	protected DataSource ds = null;
 
 	public AbstractSqlDatabase(String host, int port, String dbUsername, String dbPassword, String dbName,
 			long dbReconnectSeconds) {
@@ -53,21 +58,23 @@ public abstract class AbstractSqlDatabase extends DatabaseHelper implements Data
 			try {
 				connection.close();
 			} catch (SQLException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
+				log.error("====silo DB connection close error====", e);
 			}
 	}
 
 	@Override
 	public void bulkInsert(List<Message> list) {
 
-		if(list == null || list.size() == 0)
+		if (list == null || list.size() == 0)
 			return;
-		
+
 		PreparedStatement statement = null;
 
 		try {
-			statement = connection.prepareStatement("INSERT INTO " + Constants.SILO_COLLECTION_NAME + " (" + Constants.TOPIC
-					+ "," + Constants.MESSAGE + "," + Constants.CREATED + ") VALUES(?,?,?)");
+			checkDbConnect();
+			statement = connection.prepareStatement("INSERT INTO " + Constants.SILO_COLLECTION_NAME + " ("
+					+ Constants.TOPIC + "," + Constants.MESSAGE + "," + Constants.CREATED + ") VALUES(?,?,?)");
 
 			for (Message entry : list) {
 				statement.setString(1, entry.topic);
@@ -79,16 +86,33 @@ public abstract class AbstractSqlDatabase extends DatabaseHelper implements Data
 			statement.executeBatch();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
-
+			//e.printStackTrace();
+			log.error("====silo DB bulkInsert error====", e);
 		} finally {
 			if (statement != null)
 				try {
 					statement.close();
 				} catch (SQLException e) {
-
+					log.error("====silo DB bulkInsert close error====", e);
 				}
 		}
 
+	}
+
+	public void checkDbConnect() {
+		try {
+			//check conn valid
+			if (connection == null || !connection.isValid(60)) {
+				if (connection != null && !connection.isClosed()) {
+					connection.close();
+				}
+				//new conn
+				if (ds != null) {
+					connection = ds.getConnection();
+				}
+			}
+		} catch (SQLException e) {
+			log.error("====silo DB check connection error====", e);
+		}
 	}
 }

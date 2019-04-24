@@ -37,13 +37,17 @@ public class MySqlHelper extends AbstractSqlDatabase {
 	public synchronized void tryConnecting() {
 
 		MysqlDataSource dataSource = new MysqlDataSource();
+		ds = dataSource;
 		dataSource.setServerName(this.host);
 		dataSource.setPort(port);
 		dataSource.setUser(this.dbUsername);
 		dataSource.setPassword(this.dbPassword);
-		dataSource.setDatabaseName(this.dbName);
-
+		dataSource.setDatabaseName(this.dbName);		
+		dataSource.setUrl("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.dbName);
 		try {
+			dataSource.setAutoReconnect(true);
+			dataSource.setFailOverReadOnly(false);
+			dataSource.setAllowMultiQueries(true);
 			dataSource.setCharacterEncoding("utf-8");
 			connection = dataSource.getConnection();
 
