@@ -99,6 +99,9 @@ public abstract class AbstractSqlDatabase extends DatabaseHelper implements Data
 
 	}
 
+	/**
+	 * check connection for mysql to avoid mysql 8h timeout setting when it is timeout make connection unavailable
+	 */
 	public void checkDbConnect() {
 		try {
 			//check conn valid
